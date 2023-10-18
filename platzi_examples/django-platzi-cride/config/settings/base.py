@@ -1,10 +1,12 @@
 """Base settings to build other settings files upon."""
 
+# environ: lib que ayuda a simplificar paths con sumas y restas de booleanos
 import environ
 
 ROOT_DIR = environ.Path(__file__) - 3
 APPS_DIR = ROOT_DIR.path('cride')
 
+# env: es una instancia de 'django environ' que provee lo que se necesita del ambiente
 env = environ.Env()
 
 # Base
@@ -89,7 +91,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Static files
+# Static files: Es para agregar archivos estaticos
 STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [

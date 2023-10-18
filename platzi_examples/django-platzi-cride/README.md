@@ -1,3 +1,8 @@
+# Notas de Clase
+
+- El "settings" se compone de varios archivos con distintas configuraciones dependiendo del entorno.
+- Para "requirements" tambien se hace algo similar para instalar las dependencias que corresponden para cada ambiente
+
 # Comparte Ride
 
 Comparte Ride was a carpooling platform developed on 2016 as
