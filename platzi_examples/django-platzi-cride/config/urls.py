@@ -14,3 +14,5 @@ urlpatterns = [
     path('', include(('cride.rides.urls', 'rides'), namespace='rides')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Lo que va a busar "include" es un urlpatterns = [path('', include(router.urls))]

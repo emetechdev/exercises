@@ -6,7 +6,7 @@ from django.db import models
 # Utilities
 from cride.utils.models import CRideModel
 
-
+# CRideModel: Es la Clase Abstracta
 class Circle(CRideModel):
     """Circle model.
 
@@ -16,7 +16,7 @@ class Circle(CRideModel):
     """
 
     name = models.CharField('circle name', max_length=140)
-    slug_name = models.SlugField(unique=True, max_length=40)
+    slug_name = models.SlugField(unique=True, max_length=40) # Es un equivalente del username, pero para 'circles'
 
     about = models.CharField('circle description', max_length=255)
     picture = models.ImageField(upload_to='circles/pictures', blank=True, null=True)
@@ -59,4 +59,5 @@ class Circle(CRideModel):
     class Meta(CRideModel.Meta):
         """Meta class."""
 
+        # '-rides_taken': El menos es para indicar que es de manera descrndente
         ordering = ['-rides_taken', '-rides_offered']
