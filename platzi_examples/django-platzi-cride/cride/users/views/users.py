@@ -108,3 +108,41 @@ class UserViewSet(mixins.RetrieveModelMixin,
         }
         response.data = data
         return response
+
+
+# Emmedocs -> Instancia anterior al resultado final
+# classy DJRestFr. (www.cdrf.co) permite analizar la herencia de clases de DJRestFr. En ésta pagina se ordenan las clases
+# y se pueden consultar ascendentes y descendentes, además de los métodos y sus parámetros.
+# "def dispatch" es la clase padre
+
+# APIView: Esta hereda de la clase "View" de Django y el objeto "Request" viene de DJRestFR. Tambien agrega .get() y .post()
+from rest_framework.views import APIView 
+
+from cride.users.serializers import UserLoginSerializer, UserSignUpSerializer
+
+class UserLoginAPIView(APIView):
+    # Reescribimos el método .post()
+    def post(self, request, *args, **kwargs):
+        # Ahora todo ésto se puede comprimir en menos líneas y es como queda más arriba en el código que es la versión final
+        serializer = UserLoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        # Luego para cuando le doy "save" me tendría que devolver un nuevo token. Para que lo haga, en el serializer sobreescribo el método "create"
+        user, token = serializer.save()
+        data = { # Pones así el json es mala practica porque puede ser inconsistente en caso de omitir algun parametro.
+            # Para devolver el "Modelo del Serializer" usando "UserModelSerializer", se le pasa por parámetro la instancia "user". (Esto es porque
+            # "UserModelSerializer" recibe un objeto) y con ".data" se accede a los datos.
+            'user': UserModelSerializer(user).data,
+            'access_token': token
+        }
+        return Response(data, status=status.HTTP_201_CREATED)
+    
+
+class UserSignUpAPIView(APIView):
+    # Reescribimos el método .post()
+    def post(self, request, *args, **kwargs):
+        serializer = UserSignUpSerializer(data=request.data) # El serializer va a ser "UserSignUpAPIView" y recibe el "request.data"
+        serializer.is_valid(raise_exception=True)
+        # Y acá con el "serializer.save()" tenemos que verificar la cuenta, antes de que retorne el token
+        user = serializer.save()
+        data = UserModelSerializer(user).data # Solo devuelve el "user"
+        return Response(data, status=status.HTTP_201_CREATED)
