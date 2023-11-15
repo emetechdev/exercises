@@ -18,7 +18,8 @@ import jwt
 import time
 from datetime import timedelta
 
-
+# Emedocs : Para el envío de email usa el "sending" de django
+# Esta funcion genera el token
 def gen_verification_token(user):
     """Create JWT token that the user can use to verify its account."""
     exp_date = timezone.now() + timedelta(days=3)
@@ -30,7 +31,7 @@ def gen_verification_token(user):
     token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
     return token.decode()
 
-
+# Esta función además de mandar un email, genera un token único
 @task(name='send_confirmation_email', max_retries=3)
 def send_confirmation_email(user_pk):
     """Send account verification link to given user."""
@@ -38,6 +39,8 @@ def send_confirmation_email(user_pk):
     verification_token = gen_verification_token(user)
     subject = 'Welcome @{}! Verify your account to start using Comparte Ride'.format(user.username)
     from_email = 'Comparte Ride <noreply@comparteride.com>'
+    # "render_to_string" esto se manda en texto plano en caso de que no se llegara a renderizar link en el email. En el ejemplo vemos
+    # el choclo del token pero para el usuario vamos a mostrar solo un botoncito lindo que oculte todo.
     content = render_to_string(
         'emails/users/account_verification.html',
         {'token': verification_token, 'user': user}

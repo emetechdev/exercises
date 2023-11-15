@@ -23,7 +23,15 @@ from cride.users.serializers.profiles import ProfileModelSerializer
 import jwt
 
 
-# Un modelo de objeto para usarlo con los serializers. Este modelo se usa para devolver en un json en el Response.
+# Las peticiones para prueba se hace: primero a signup para registrar el usuario, luego
+
+# Ej httpie de signup: http localhost:8000/users/signup/ email=mail@mail.com password=contra1234 password_confirm=contra1234 first_name=nombre last_name=apellido username=nombreusuario phone_number=41387461823 -b
+# 
+
+
+# Un modelo de objeto para usarlo con los serializers. Este modelo se usa para devolver en un json en el Response. Esto se hace
+# con la propiedad "is_verified" que va a responder con true o false una vez que le pasemos por parametro el email a verificar.
+
 class UserModelSerializer(serializers.ModelSerializer):
     """User model serializer."""
 
@@ -43,7 +51,7 @@ class UserModelSerializer(serializers.ModelSerializer):
             'profile'
         )
 
-
+# una vez que tenemos el sugnup, queda limitar el login unicamente a usuarios que hay verificado su cuenta
 class UserSignUpSerializer(serializers.Serializer):
     """User sign up serializer.
 
@@ -89,11 +97,17 @@ class UserSignUpSerializer(serializers.Serializer):
         """Handle user and profile creation."""
         # Ahora al guardar a "user", sacamos el "password_confirmation" porque no sirve mas
         data.pop('password_confirmation') # Sacamos "password_confirmation" con un "pop"
-        # "create_user" éste método es especial, no es lo mismo que el "create" a secas. "create_user" es del manager de "user"
+        # "create_user" éste método es especial, no es lo mismo que el "create" a secas. "create_user" es del manager de "user", entonces
+        # para crear el "user" se le pasa "**data" con los datos que va a crear el user y aunque el modelo ya tengo seteado por defecto que
+        # "is_verified" va a ser falso, se le va a pasar igual el parametro "is_verified=False"
         user = User.objects.create_user(**data, is_verified=False, is_client=True)
         Profile.objects.create(user=user) # Se crea el "profine" y el retorno no lo guardamos en variable porque no hace falta devolverlo
+        # Ahora para poder validar el email en el ejemplo se usa "any mail" y esta configurado en éste proyecto para su uso. Esto manda un email
+        # ésta funcion está desarrollada en: /cride/taskapp/tasks.py y se le pasa el "pk" por parametro
         send_confirmation_email.delay(user_pk=user.pk)
         return user
+
+# Del LOGIN se espera que ya para cuando se haga el login, además de validadar las credenciales, ya se hayan verificado las cuentas
 
 # Emmedocs -> 
 class UserLoginSerializer(serializers.Serializer):
@@ -115,7 +129,7 @@ class UserLoginSerializer(serializers.Serializer):
         # para poder regresar los datos del usuario y/o otros datos mas, segun lo que ncesite.
         if not user:
             raise serializers.ValidationError('Invalid credentials')
-        if not user.is_verified:
+        if not user.is_verified: # Aca se lanza la excepcion si la cuenta no esta verificada
             raise serializers.ValidationError('Account is not active yet :(')
         # Los "Serializers" poseen un contexto (como los templates), y el "contexto" es otro atributo de clase como cualquier clase de paython.
         # Entonces se puede hacer "self.context['user] = user". Y esto lo que va a hacer es que cuando se llama a "def create()", que se hace después
