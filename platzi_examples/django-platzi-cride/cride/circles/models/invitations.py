@@ -40,7 +40,8 @@ class Invitation(CRideModel):
     used = models.BooleanField(default=False)
     used_at = models.DateTimeField(blank=True, null=True)
 
-    # Manager
+    # Manager: Acá se incluye el manager customizado
+    
     objects = InvitationManager()
 
     def __str__(self):

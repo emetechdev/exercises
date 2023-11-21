@@ -77,7 +77,11 @@ class MembershipViewSet(mixins.ListModelMixin,
 
 # Es una interfaz que a traves de la cual la BD puede ser consultadas con operaciones de querys. Los mangers se acceden a traves de la
 # propiedad "object" de cada clase. Ej: Se puede hacer "Circle.object". A partir de "objetc" estamos usando el manager. Cosas como ".filter"
-# ".all", ".value". Y puede ser que se necesite un propio managr asi que se puede customizar
+# ".all", ".value". Y puede ser que se necesite un propio managr asi que se puede customizar.
+
+# En ésta accion la idea es que la vista genere todos los codigos que un usuario tenga disponible para compartir con sus amigos y los codigos
+# que compartio.
+# "detail=True" necesita saber de que usuario es
     @action(detail=True, methods=['get'])
     def invitations(self, request, *args, **kwargs):
         """Retrieve a member's invitations breakdown.
@@ -98,6 +102,7 @@ class MembershipViewSet(mixins.ListModelMixin,
             issued_by=request.user,
             used=False
         ).values_list('code')
+        # "remaining_invitations" son las invitaciones quee le quedan para compartir
         diff = member.remaining_invitations - len(unused_invitations)
 
         invitations = [x[0] for x in unused_invitations]
