@@ -23,8 +23,8 @@ class Circle(CRideModel):
 
     members = models.ManyToManyField(
         'users.User',
-        through='circles.Membership',
-        through_fields=('circle', 'user')
+        through='circles.Membership', # esta es la referencia al modelo "memberchip"
+        through_fields=('circle', 'user') # Estos son los campos que unen la referenica. circle y user son los que relacionan los modelos (o tablas)
     )
 
     # Stats

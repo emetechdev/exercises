@@ -26,83 +26,9 @@ from cride.circles.models import Circle
 # user@machine:~$ http  get localhost:8000/circles/ -b
 # user@machine:~$ http  post localhost:8000/circles/ name="nombre" slug_name="slug nombre" about="hola mundo" -v
 
-# *********************  Ejemplo anterior ****************************
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework.validators import (
-    UniqueValidator,
-)  # Esto valida que el dato sea único
 
 
-# Usando el siguiente Serializer:
-class CircleSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    slug_name = serializers.SlugField()
-    rides_token = serializers.IntegreField()
-    rides_offered = serializers.IntegreField()
-    members_limit = serializers.IntegreField()
-
-
-# A cada campo del "Serializer", se le setean las restricciones para dato
-class CreateCircleSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=40)
-    slug_name = serializers.SlugField(
-        # validators: Recibe una lista con los validadores. En el ej: recibe una instancia de "UniqueValidator"
-        # UniqueValidator: recibe la query "Circle.objects.all()" para que valide que el dato sea unico en el modelo
-        max_length=40, validators=[UniqueValidator(queryset=Circle.objects.all())]
-    )
-    about = serializers.CharField(required=False)  # Este indica que no es requerido
-
-    # Ahora crear objetos. Es decir, tomar datos, validarlos y crear el modelo, en lugar de hacer todos los pasos de @api_view(['POST'])
-        # data= serializer.data
-        # circle = Circle.objects.create(**data)
-    # Se usan funciones que traen los serializadores (en "saving instances"), que lo que hace es convertir datos a un modelo
-    # sobreescribiendo los métodos "create()" o "update()" por ejemplo.
-    def create(
-        self, data
-    ):  # Recibe los datos ya validados. Este método se invoca desde la instancia con "save()"
-        return Circle.objects.create(**data)
-
-
-@api_view(["GET"])
-def list_circles(request):
-    circles = Circle.objects.filter(
-        is_public=True
-    )  # Se define que "circle" cuando haga la query, traiga los que tengan "is_public"=True
-    serializer = CircleSerializer(
-        circles, many=True
-    )  # "CircleSerializer" recibe la instancia "circles" y con "many=True", le decimos que son multiples datos
-    return Response(serializer)
-
-
-@api_view(["POST"])
-def create_circles(request):
-    serializer = CreateCircleSerializer(
-        request.data
-    )  # Recibe los datos y se los manda al "Serializer". Le manda lo que venga en el "request.data"
-    serializer.is_valid(
-        reaise_exception=True
-    )  # "is_valid" es una funcion que trae "serializer" que permite validar si está todo 'ok'
-    # Sin método "create()" en "CreateCircleSerializer" van las siguientes lineas
-    # data= serializer.data # Si está todo 'ok' va a recibir la respuesta en "serializer.data" y esa es la que se responde
-    ## Hasta aquí "data" tiene el objeto creado, ej: {"name":"nombre", "slug_name":"slug nombre", "about":"hola mundo"}
-    ## con los campos del "CreateCircleSerializer"
-    ## "**data" es la forma de desempaquetar datos en python
-    # circle = Circle.objects.create(**data)
-
-    # Con método "create()" en "CreateCircleSerializer" van la siguiente linea:
-    circle = (
-        serializer.save()
-    )  # Con "save()" se invoca el método "create()" de la clase "CreateCircleSerializer"
-
-    return Response(CircleSerializer(circle).data)
-    # El "Response" termina devolviendo el objeto serializado que se usa cuando se hace el 'get', que es el momento donde se
-    # consulta la BD para traer el dato. Es decir que ahora estaría incluyendo "rides_token", "rides_offered" y "members_limit"
-
-
-# ********************* Fin -  Ejemplo anterior ****************************
-
-
+# "CircleModelSerializer" este es el serializer definitivo
 class CircleModelSerializer(serializers.ModelSerializer):
     """Circle model serializer."""
 
@@ -114,8 +40,8 @@ class CircleModelSerializer(serializers.ModelSerializer):
     class Meta:
         """Meta class."""
 
-        model = Circle
-        fields = (
+        model = Circle # Se indica el modelo
+        fields = ( # Estos son los campos que se espera que traiga
             "name",
             "slug_name",
             "about",
@@ -127,19 +53,100 @@ class CircleModelSerializer(serializers.ModelSerializer):
             "is_limited",
             "members_limit",
         )
-        read_only_fields = (
+        read_only_fields = ( # Se definen los campos de solo lectura
             "is_public",
             "verified",
             "rides_offered",
             "rides_taken",
         )
 
+# Se agrega una validación al modelo, sobreescribiendo "validate", donde "members_limit" es igual a "data.get()" y se le pasa por parámetro
+# el nombre del campo que se espera. Y es "get" y no se accede como diccionario porque puedde ser que no venga el dato
     def validate(self, data):
         """Ensure both members_limit and is_limited are present."""
         members_limit = data.get("members_limit", None)
         is_limited = data.get("is_limited", False)
-        if is_limited ^ bool(members_limit):
+        if is_limited ^ bool(members_limit): # Esto es un XOR para decir que si está uno y no está el otro, que se mande la excepcion.
             raise serializers.ValidationError(
                 "If circle is limited, a member limit must be provided"
             )
         return data
+
+
+#************************** desde aca son ejemplo que son reemplazados por los VIEW SETS *****
+
+# *********************  Ejemplo anterior ****************************
+# from rest_framework.decorators import api_view
+# from rest_framework.response import Response
+# from rest_framework.validators import (
+#     UniqueValidator,
+# )  # Esto valida que el dato sea único
+
+
+# # Usando el siguiente Serializer:
+# class CircleSerializer(serializers.Serializer):
+#     name = serializers.CharField()
+#     slug_name = serializers.SlugField()
+#     rides_token = serializers.IntegreField()
+#     rides_offered = serializers.IntegreField()
+#     members_limit = serializers.IntegreField()
+
+
+# # A cada campo del "Serializer", se le setean las restricciones para dato
+# class CreateCircleSerializer(serializers.Serializer):
+#     name = serializers.CharField(max_length=40)
+#     slug_name = serializers.SlugField(
+#         # validators: Recibe una lista con los validadores. En el ej: recibe una instancia de "UniqueValidator"
+#         # UniqueValidator: recibe la query "Circle.objects.all()" para que valide que el dato sea unico en el modelo
+#         max_length=40, validators=[UniqueValidator(queryset=Circle.objects.all())]
+#     )
+#     about = serializers.CharField(required=False)  # Este indica que no es requerido
+
+#     # Ahora crear objetos. Es decir, tomar datos, validarlos y crear el modelo, en lugar de hacer todos los pasos de @api_view(['POST'])
+#         # data= serializer.data
+#         # circle = Circle.objects.create(**data)
+#     # Se usan funciones que traen los serializadores (en "saving instances"), que lo que hace es convertir datos a un modelo
+#     # sobreescribiendo los métodos "create()" o "update()" por ejemplo.
+#     def create(
+#         self, data
+#     ):  # Recibe los datos ya validados. Este método se invoca desde la instancia con "save()"
+#         return Circle.objects.create(**data)
+    
+
+# @api_view(["GET"])
+# def list_circles(request):
+#     circles = Circle.objects.filter(
+#         is_public=True
+#     )  # Se define que "circle" cuando haga la query, traiga los que tengan "is_public"=True
+#     serializer = CircleSerializer(
+#         circles, many=True
+#     )  # "CircleSerializer" recibe la instancia "circles" y con "many=True", le decimos que son multiples datos
+#     return Response(serializer)
+
+
+# @api_view(["POST"])
+# def create_circles(request):
+#     serializer = CreateCircleSerializer(
+#         request.data
+#     )  # Recibe los datos y se los manda al "Serializer". Le manda lo que venga en el "request.data"
+#     serializer.is_valid(
+#         reaise_exception=True
+#     )  # "is_valid" es una funcion que trae "serializer" que permite validar si está todo 'ok'
+#     # Sin método "create()" en "CreateCircleSerializer" van las siguientes lineas
+#     # data= serializer.data # Si está todo 'ok' va a recibir la respuesta en "serializer.data" y esa es la que se responde
+#     ## Hasta aquí "data" tiene el objeto creado, ej: {"name":"nombre", "slug_name":"slug nombre", "about":"hola mundo"}
+#     ## con los campos del "CreateCircleSerializer"
+#     ## "**data" es la forma de desempaquetar datos en python
+#     # circle = Circle.objects.create(**data)
+
+#     # Con método "create()" en "CreateCircleSerializer" van la siguiente linea:
+#     circle = (
+#         serializer.save()
+#     )  # Con "save()" se invoca el método "create()" de la clase "CreateCircleSerializer"
+
+#     return Response(CircleSerializer(circle).data)
+    # El "Response" termina devolviendo el objeto serializado que se usa cuando se hace el 'get', que es el momento donde se
+    # consulta la BD para traer el dato. Es decir que ahora estaría incluyendo "rides_token", "rides_offered" y "members_limit"
+
+
+# ********************* Fin -  Ejemplo anterior ****************************

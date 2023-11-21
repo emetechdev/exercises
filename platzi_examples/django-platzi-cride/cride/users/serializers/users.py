@@ -35,6 +35,7 @@ import jwt
 class UserModelSerializer(serializers.ModelSerializer):
     """User model serializer."""
 
+# Esto es para que devuelva el profile como solo lectura
     profile = ProfileModelSerializer(read_only=True)
 
     class Meta:
@@ -160,25 +161,36 @@ class UserLoginSerializer(serializers.Serializer):
 class AccountVerificationSerializer(serializers.Serializer):
     """Account verification serializer."""
 
-    token = serializers.CharField()
+    token = serializers.CharField() # Este es el unico campo que recibe
 
     def validate_token(self, data):
         """Verify token is valid."""
+        # Se hacen las validaciónes correspondientes. Se intenta con "try" realizar el "payload" correspondiente y sino, se capturan con
+        # las excepciones de "jwt". Esán los ejemplos por expiracion de token y por "type" inválido.
+        # Esto se hace con try/catch porque no retorna mensajes de error ni respuestas de poque no valida, sino que directamente tira excepción
+        # En la docu hay mas referencias de éstas excepciones
         try:
             payload = jwt.decode(data, settings.SECRET_KEY, algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             raise serializers.ValidationError('Verification link has expired.')
-        except jwt.PyJWTError:
+        except jwt.PyJWTError: # Aca se usa "class PyJWTError(Exception):" para usar la más general, y hacerla mas corta en el curso
+            # en la docu no dice que "PyJWTError" hereda de "Exception" pero en el fuente se puede ver que si: https://github.com/jpadilla/pyjwt/blob/72ad55f6d7041ae698dc0790a690804118be50fc/jwt/exceptions.py
             raise serializers.ValidationError('Invalid token')
         if payload['type'] != 'email_confirmation':
             raise serializers.ValidationError('Invalid token')
 
+        # Setea el "self.context" al parámetro "payload" con el valor del payload para persistirlo ahí
         self.context['payload'] = payload
+        # En éste metodo no se obtiene ni se usa "user" por una cuestion de buenas practicas, el método "validate" se usa sólo para validar
         return data
 
+    # Ahora, entre sobreescribir "save()" o "create()", se decide sobreescribir "save" porque en éste serializer no se esta creando o grabando nada
+    # En la documentación de "Serializers" en "saving instances" dice que el método "create" tiene que devolver sí o sí una instancia de un objeto y que 
+    # si no lo hace el mismo DJRestFr. lanza una alerta. Por eso, en éste caso como no necesitamos que retorne un objeto, usamos "save()".
+    # Y "save()" sólo recibe "self"
     def save(self):
         """Update user's verified status."""
-        payload = self.context['payload']
-        user = User.objects.get(username=payload['user'])
+        payload = self.context['payload'] # Toma el payload del "context"
+        user = User.objects.get(username=payload['user']) # del "payload" toma el "user" y lo verifica
         user.is_verified = True
-        user.save()
+        user.save() # Lo guarda

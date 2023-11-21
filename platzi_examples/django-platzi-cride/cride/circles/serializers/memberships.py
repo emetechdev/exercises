@@ -17,6 +17,9 @@ class MembershipModelSerializer(serializers.ModelSerializer):
     """Member model serializer."""
 
     user = UserModelSerializer(read_only=True)
+    # Hay diferentes maneras de relacionar campos, (hay mas info en : https://www.django-rest-framework.org/api-guide/relations/)
+    # la mas comun es por primary key. Esto muestra los datos relacionados com un arreglo: 
+    # "results" : [ {"user": {...}, "is_admin" ...}, {"user2": {...}, "is_admin" ...}, etc]
     invited_by = serializers.StringRelatedField()
     joined_at = serializers.DateTimeField(source='created', read_only=True)
 
@@ -25,12 +28,12 @@ class MembershipModelSerializer(serializers.ModelSerializer):
 
         model = Membership
         fields = (
-            'user',
+            'user', # Con "user = UserModelSerializer(read_only=True)" se anida un user
             'is_admin', 'is_active',
             'used_invitations', 'remaining_invitations',
             'invited_by',
             'rides_taken', 'rides_offered',
-            'joined_at'
+            'joined_at' # Com oeste campo no lo tenemos, lo definimos mas arriba en "joined_at = serializers.DateTimeField(source='created', read_only=True)"
         )
         read_only_fields = (
             'user',

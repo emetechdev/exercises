@@ -24,11 +24,21 @@ class MembershipViewSet(mixins.ListModelMixin,
                         viewsets.GenericViewSet):
     """Circle membership view set."""
 
+
     serializer_class = MembershipModelSerializer
 
+# El primer reto es que cada vez que se esté validando la vista, el circulo debe estar disponible para toda la clase. Para eso se
+# usa el método "dispatch" que es el método que se encarga de manejar todas las peticiones. Particularmente de cómo van a ser servidas.
+# Pero desde aquí tambien se pueden llamar a otros métodos.
+# En la docu se ve que viene de "APIView" y de "View".
+# Todo esto se va  a ejecutar antes de que empiece a responder peticiones. Como hasta acá no se tiene la "query" de la define en
+# "def get_queryset(self):" para decirle que tome los circulos que estén activos
     def dispatch(self, request, *args, **kwargs):
         """Verify that the circle exists."""
+        # Los "slug names" del circulo van a estar en los keywords arguments, que esto viene de la url "kwargs['slug_name']"
         slug_name = kwargs['slug_name']
+        # "self.circle = get_object_or_404(Circle, slug_name=slug_name)" acá se dice que el objeto que se va a obtener es el circulo,
+        # se le pasa el "slug_name"
         self.circle = get_object_or_404(Circle, slug_name=slug_name)
         return super(MembershipViewSet, self).dispatch(request, *args, **kwargs)
 
@@ -41,13 +51,15 @@ class MembershipViewSet(mixins.ListModelMixin,
             permissions.append(IsSelfMember)
         return [p() for p in permissions]
 
+# "get_queryset" este método se sobreescribe para traer a todos los circulos.Porue hasta ésta instancia no los tiene.
     def get_queryset(self):
         """Return circle members."""
         return Membership.objects.filter(
             circle=self.circle,
-            is_active=True
+            is_active=True # Trae sólo los que están ativos
         )
 
+# El "get_object" regresa el miembro
     def get_object(self):
         """Return the circle member by using the user's username."""
         return get_object_or_404(
@@ -57,11 +69,15 @@ class MembershipViewSet(mixins.ListModelMixin,
             is_active=True
         )
 
+# "perform_destroy" Es el que hace el borrado, pero en este caso sumamos el cambio "is_active" = false
     def perform_destroy(self, instance):
         """Disable membership."""
         instance.is_active = False
         instance.save()
 
+# Es una interfaz que a traves de la cual la BD puede ser consultadas con operaciones de querys. Los mangers se acceden a traves de la
+# propiedad "object" de cada clase. Ej: Se puede hacer "Circle.object". A partir de "objetc" estamos usando el manager. Cosas como ".filter"
+# ".all", ".value". Y puede ser que se necesite un propio managr asi que se puede customizar
     @action(detail=True, methods=['get'])
     def invitations(self, request, *args, **kwargs):
         """Retrieve a member's invitations breakdown.
