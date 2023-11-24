@@ -51,11 +51,16 @@ class AddMemberSerializer(serializers.Serializer):
     """
 
     invitation_code = serializers.CharField(min_length=8)
+    # "HiddenField": Este metodo no valida contra la entrada del usuario, sino que lo valida de manera interna. Y se le puede agregar
+    # un parametro que en el ejemplo es el user por default
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
+    # Sobreescribir "validate_user". Se toma del 'context' el circulo
     def validate_user(self, data):
         """Verify user isn't already a member."""
         circle = self.context['circle']
+        # De ésta linea "user = serializers.HiddenField(default=serializers.CurrentUserDefault())" se obtiene una instancia del 
+        # 'user' así que el "data" que recibe por parametro el metodo "validate_user" es el 'user'
         user = data
         q = Membership.objects.filter(circle=circle, user=user)
         if q.exists():
@@ -92,7 +97,7 @@ class AddMemberSerializer(serializers.Serializer):
 
         # Member creation
         member = Membership.objects.create(
-            user=user,
+            user=user, # El user es el que hace la peticion
             profile=user.profile,
             circle=circle,
             invited_by=invitation.issued_by
