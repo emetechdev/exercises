@@ -64,8 +64,18 @@ class RideViewSet(mixins.ListModelMixin,
         context['circle'] = self.circle
         return context
 
+# Entre todos los métodos que se mandan llamar en la renderización de una vista, se manda llamar uno que se llama
+# "get_serializer()" y "get_serializer()" consigue la clse con "get_serializer_class()" y luego agrega a los argumentos una 'key'
+# o 'llave' llamada 'context' lo que se obtiene de "get_serializer_context()"
+
+# Y que hace "get-serializer_class()"? Va a la propiedad "get_serializer_class" y si no hay nada, lanza una excepcion.
+# Y  que hace "get_serializer_context()"? retorna un diccionario con 3 clave/valor: {'request': self.request, 'format':self.format_kwarg, 'view':self}
     def get_serializer_class(self):
         """Return serializer based on action."""
+        # context=super(RideViewSet, self).get_serializer_context()
+        # context['circle']=self.circle
+        # return context
+
         if self.action == 'create':
             return CreateRideSerializer
         if self.action == 'join':
@@ -75,6 +85,7 @@ class RideViewSet(mixins.ListModelMixin,
         if self.action == 'rate':
             return CreateRideRatingSerializer
         return RideModelSerializer
+    
 
     def get_queryset(self):
         """Return active circle's rides."""

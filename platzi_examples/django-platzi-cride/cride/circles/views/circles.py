@@ -8,7 +8,8 @@ from rest_framework import mixins, viewsets
 from rest_framework.permissions import IsAuthenticated
 from cride.circles.permissions.circles import IsCircleAdmin
 
-# Filters
+# Filters: Sirven para agregar filtros en la url, se instala en el config : REST_FRAMEWORK = {'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']}
+# Permite hacer busquedas. Docu: https://www.django-rest-framework.org/api-guide/filtering/
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -43,11 +44,13 @@ class CircleViewSet(mixins.CreateModelMixin,
     lookup_field = 'slug_name'
 
     # Filters
+    # "filter_backends" y "search_fields" habilitan el ordenamiento
     filter_backends = (SearchFilter, OrderingFilter, DjangoFilterBackend)
-    search_fields = ('slug_name', 'name')
+    search_fields = ('slug_name', 'name') # Son los parametros de url permitidos
+    # "ordering_fields" son los campos que admite para hacer el filtrado
     ordering_fields = ('rides_offered', 'rides_taken', 'name', 'created', 'member_limit')
-    ordering = ('-members__count', '-rides_offered', '-rides_taken')
-    filter_fields = ('verified', 'is_limited')
+    ordering = ('-members__count', '-rides_offered', '-rides_taken') # Ordenamiento de los resulados
+    filter_fields = ('verified', 'is_limited') # Campos filtrables
 
 # pARA LA paginacion es sencillo y se agrega en setting el numero.
 # Ahora para poder customizar las acciones de listar, crear u otras, se puede sobreescribir las funciones. Ejemplo para listar

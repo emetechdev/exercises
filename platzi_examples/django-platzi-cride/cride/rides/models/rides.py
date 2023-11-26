@@ -9,7 +9,7 @@ from cride.utils.models import CRideModel
 
 class Ride(CRideModel):
     """Ride model."""
-
+    # "on_delete=models.SET_NULL" No permite que se eliminene los rides si se eliminan las cuentas y demas
     offered_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True)
     offered_in = models.ForeignKey('circles.Circle', on_delete=models.SET_NULL, null=True)
 

@@ -28,7 +28,7 @@ class RideModelSerializer(serializers.ModelSerializer):
         """Meta class."""
 
         model = Ride
-        fields = '__all__'
+        fields = '__all__' # Muestra todos los campos
         read_only_fields = (
             'offered_by',
             'offered_in',
@@ -46,6 +46,7 @@ class RideModelSerializer(serializers.ModelSerializer):
 class CreateRideSerializer(serializers.ModelSerializer):
     """Create ride serializer."""
 
+    # Regresa el usuario que está en el contexto
     offered_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
     available_seats = serializers.IntegerField(min_value=1, max_value=15)
 
@@ -53,6 +54,8 @@ class CreateRideSerializer(serializers.ModelSerializer):
         """Meta class."""
 
         model = Ride
+        # Como es más facil y la lista de campos que no se quieren obtener es mas corta, se usa la propiedad "exclude" 
+        # para excluir los parametros que no se quieren obtener en la peticion
         exclude = ('offered_in', 'passengers', 'rating', 'is_active')
 
     def validate_departure_date(self, data):
@@ -64,12 +67,14 @@ class CreateRideSerializer(serializers.ModelSerializer):
             )
         return data
 
+# En el "validate" ya se obtiene lo que se recibió en la vista "RideViewSet"
     def validate(self, data):
         """Validate.
 
         Verify that the person who offers the ride is member
         and also the same user making the request.
         """
+        # Del 'context' se obtiene 'request' y de ahí el user. y se lo compara con el "ofrecido por"
         if self.context['request'].user != data['offered_by']:
             raise serializers.ValidationError('Rides offered on behalf of others are not allowed.')
 

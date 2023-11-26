@@ -149,11 +149,21 @@ ADMINS = [
 ]
 MANAGERS = ADMINS
 
-# Celery
+# Celery:Se encarga de la administración de todas las tareas que tienen que suceder fuera de los procesos síncronos de django 
+# y hace eso a través de "Redis" como broker de mensajes, que tiene la parte de **Broker** que se encarga de pedir los mensajes 
+# de "Redis" y empezar a ejecutar las tareas. Y tiene los **Producers** que mandan a llamar esas tareas, empujan los mensajes a 
+# "Redis" para que despues los **Brokers** las ejecuten.
+#Implementar un sistema así, usualmente es complejo porque implica correr el **Broker**, correr **Celery** (que va a estar 
+# pidiendo los procesos) y a veces instalarlo entre diferentes plataformas suele ser tedioso, pero para el ejemplo del proyecto
+# ya esta todo creado y configurado.
+# Para prod no hay nada, se usa celery para usarlo en entorno de desarrollo gracias a docker.
+
+# En el ejemplo se usa para poder gestionar la tarea de email y poder llevar los ejercicios de validación de emails.
+# El ejemplo de envio de email esta en task app
 INSTALLED_APPS += ['cride.taskapp.celery.CeleryAppConfig']
 if USE_TZ:
     CELERY_TIMEZONE = TIME_ZONE
-CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+CELERY_BROKER_URL = env('CELERY_BROKER_URL') # Inndica donde va a estar el broker
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
