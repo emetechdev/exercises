@@ -35,9 +35,12 @@ class CircleAdmin(admin.ModelAdmin):
 
     actions = ['make_verified', 'make_unverified', 'download_todays_rides']
 
+# "make_verified" esta funcion es para que haya una solapa donde los elementos seleccionados puedan actualizarse como "verified"
     def make_verified(self, request, queryset):
         """Make circles verified."""
         queryset.update(verified=True)
+
+        # "short_description" Este es el atributo que hace visible la funcion para ejecutarla
     make_verified.short_description = 'Make selected circles verified'
 
     def make_unverified(self, request, queryset):
@@ -45,6 +48,7 @@ class CircleAdmin(admin.ModelAdmin):
         queryset.update(verified=False)
     make_unverified.short_description = 'Make selected circles unverified'
 
+# Funcion para descargar un csv con los viajes a través de un http, abre una pestaña nueva y el navegador es el que descarga
     def download_todays_rides(self, request, queryset):
         """Return today's rides."""
         now = timezone.now()

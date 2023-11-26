@@ -40,11 +40,16 @@ def gen_verification_token(user):
     # siguente forma: b'....'. Por eso cuando se lo retorna, ANTES se usa el método ".decode" de python para convertirlo de formato "bytes" a "string"
     return token.decode() # ESTE "decode" NO ES EL DE JWT
 
-# Esta función además de mandar un email, genera un token único
+# Para decirle a "Celery" que éstas son tareas de Celery se usa el decorados "@task" al cual se le pasa el nombre de la funcion
+# Si la tarea viene fallando, se le puede asignar un numero máximo de veces que puede fallar y eso se hace con "max_retries", que en éste caso es 3
+# Tambien se pueden agregar mas cosas pero eso es mejor consultar la docu.
 @task(name='send_confirmation_email', max_retries=3)
-def send_confirmation_email(user_pk):
+def send_confirmation_email(user_pk): 
+    # Una de las buenas prácticas de "Celery" es no estar mandando datos complejos en la función, ej: "send_confirmation_email(dato_complejo)"
+    # esto es porque pueden ir mutando durante su trayecto y es por eso que es mejor mandar un id por ejemplo: "send_confirmation_email(user_pk)"
+# Esta función además de mandar un email, genera un token único y despues se puede validar mas abajo
     """Send account verification link to given user."""
-    user = User.objects.get(pk=user_pk)
+    user = User.objects.get(pk=user_pk) # Validacin de usuario por id
     verification_token = gen_verification_token(user)
     subject = 'Welcome @{}! Verify your account to start using Comparte Ride'.format(user.username)
     from_email = 'Comparte Ride <noreply@comparteride.com>'
@@ -58,8 +63,9 @@ def send_confirmation_email(user_pk):
     msg.attach_alternative(content, "text/html")
     msg.send()
 
-
-@periodic_task(name='disable_finished_rides', run_every=timedelta(minutes=20))
+# "@periodic_task" se usa para definir una tarea periodica en celery y se le pasa por parametro el nombre de la funcion, entre otros parametros
+# "run_every=timedelta(minutes=20)" sirve para indicar cada cuanto se quiere que corra
+@periodic_task(name='disable_finished_rides', run_every=timedelta(minutes=20)) # Se ejecuta cada 20 minutos
 def disable_finished_rides():
     """Disable finished rides."""
     now = timezone.now()
