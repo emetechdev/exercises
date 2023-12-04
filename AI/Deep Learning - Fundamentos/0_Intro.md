@@ -66,7 +66,7 @@ Para tratar de resolver éstos problemas surge una técnica que se llama **Repre
 
 - Cuando es casi tan difícil obtener una representación que resolver el problema original, las técnicas de **Representation Learning** no son de utilidad.
 
-![End-to-end](image.png)
+![End-to-end](end-to-end.png)
 
 Cuando tratámos de transcribir a texto lo que hbla una persona en un audio, lo que se hacía usando técnicas clásicas de **Machine Learning** era: tomar el audio, identificar una serie de características de ese audio, se las proporcionaban a un algoritmo de **Machine Learning** con el que se hacía una detección de fonemas. Después se realizaba una composición de palabras y por último se obtenía ese texto traducido.
 Cuando se habla de **End-To-End Learning** y concretamente de éste tipo de técnica es la que van a usar la mayoría de algoritmos de **Deep Learning**.
