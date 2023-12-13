@@ -60,3 +60,48 @@ Entonces este **bias** va a ser clave para juzgar en la decisión.
 
 En el gráfico **b** es el **Bias**.
 ![TLU](img/6_TLU.png)
+
+## Notación y funcionamiento del Perceptrón
+A tener en cuenta:
+El **Perceptrón** se corresponde con una arquitectura compuesta por **una única capa de TLUs**.
+Permite la clasificación de instancias en diferentes clases binarias de manera simultánea.
+En el gráfico de ejemplo (de la izquierda) tenemos un **Perceptrón** que recibe 2 características de entrada **x1 y x2**, tenemos 3 **TLU's** que formarían parte de esa única capa. Hay que tener en cuenta que si buscamos en internet, hay literatura en las que los autores refieren a ésta arquitectura como si fuera una única TLU.
+Pero la forma más comunmente aceptada es referirse a **Perceptrón** como esta arquitectura que puede tener varias TLU's en una única capa, sin embargo, que no sorprenda si en algún momento hay referencia a ellas como **una arquitectura con una capa de una única TLU**.
+**En el gráfico de la derecha se ve cómo funciona una única TLU**, ahora el problema es que tenemos un perceptrón que tiene una capa con 3 TLU's con lo cual de alguna manera tenemos que diferenciar entre los parámetros (con los pesos) de cada una de las TLU's. Como convención en la notación, en éste caso que vemos a la derecha (el perceptrón de una única TLU), tenemos 3 pesos (w1, w2, b) y éstos pesos se suelen denominar como **parámetros del modelo**, entonces tendríamos 3 parámetros del modelo para éste perceptrón de una única TLU.
+Recordar que se denomina **Modelo** a **todo el conjunto de ecuaciónes que forman parte de ésta arquitectura (en éste caso Perceptrón)**.
+Una vez que hemos ajustado esos pesos (o parámetros w1, w2 y b), veremos que el resultado hw(x) quedaría parametrizado por los parámetros.
+
+![Arquitectura con varias TLU's](img/6_arq_con_varias_TLUs.png)
+
+Cuando hablamos de un perceptrón con varias TLU's, la cosa cambia.
+Tendríamos las características de entradas x1, x2 y b=1, éstas conformarían **una capa denominada "Input Layer"** (pintada de amarillo).
+La capa conformada con las 3 TLU's se denomina **Output Layer (es la última capa que nos proporciona los resultados)**, es importante recordar ésta notación porque se usa en arquitecturas más complejas donde hay capas intermedias (que en éste ejemplo no se ven).
+Es importante saber que en éste caso vamos a tener más de un resultado donde cada TLU nos va a proporcionar de manera independiente cada una, un resultado diferente, en consecuencia podrémos denominar esos resultados como **Hw(x)1=y1, Hw(x)2=y2 y Hw(x)3=y3**.
+Una vez que tenemos la notación general, veremos cómo se desarrollan cada una de las fórmulas de éstas TLU's en base a los pesos.
+Cada una de éstas variables de entrada (x1, x2 y b) ya no solo se introducen en una única TLU, sino que e introduce en 3 TLU's, lo que significa que cada una de las características de entrada tendrá asociado un peso para cada una de las TLU's.
+También tendremos para cada TLU una función de agregación "Z" y una de activación "A".
+
+![Funcionamiento de perceptron](img/6_funcionamiento_de_perceptron.png)
+
+De ésta forma tendríamos en lugar de 3 parámetros del modelo con 3 pesos, en la fórmula completa tendríamos 9 parámetros (o pesos, en el gráfico está marcado con rosa) y tendríamos que encargarnos de encontrar los valores de todos ellos de manera que la predicción final fuera adecuada.
+Aspectos relevantes a tener en cuenta:
+- Cada una de éstas neuronas que vemos aquí (es decir, cada TLU) nos va a proporcionar un resultado de manera independiente.
+
+![Ejemplo de input para deteccion de mails](img/6_ejemplo_deteccion_de_spam.png)
+
+Para los resultados que arroje cada TLU, es decir cada "y", se pueden aplicar diferentes sistemas para llegar a una conclusión final. Por ejemplo se puede aplicar un sistema de clasificación por voto y decir que "el número que más se repita, va a ser mi resultado final", en el ejemplo, el resultado final es cero, es decir, es un correo legítimo.
+
+Otra de las cosas interesantes que permiten realizar el perceptrón teniendo varias TLU's en la **capa de salida, en la "Output Layer"**, es que **nos permite realizar clasificación multi clase en lugar de clasificación binaria**.
+La **Clasificación multiclase** se basa en los siguiente:
+Imaginemos que tenemos un problema que queremos resolver, en el que en lugar de tener únicamente 2 categorías de salida como en el ejemplo de "deteccion de spams" que serían "legítimo" y "spam", pero si tuvieramos 3 categorías por ejemplo, quedaría como: *categoría 1, categoría 2 y categoría 3*.
+En un escenario así, se podría usar éste algortimo para que realice una clasificación entre las 3 ctegorías. Esto se haría codificando o representando cada categoría de la sigueinte forma: 
+- *Categoría 1* = [1, 0, 0]
+- *Categoría 2* = [0, 1, 0]
+- *Categoría 3* = [0, 0, 1]
+
+Ahora, para saber cómo acierta mi algoritmo, se hace de la siguiente forma:
+Imaginemos que tengo una predicción en la que el algoritmo me dice por ejemplo:
+en la primera TLU me da 0, la segunda tambien pero la tercera me da 1.
+Enteonces, tomo esos 3 resultados, los trato como un vector (en el ejemplo queda como [0, 0, 1]). Y lo que tendré será que mi perceptrón me está prediciendo que en función de éstas características de entrada que le proporcionamos y el valor que tienen éstos pesos del modelo, en base a lo que yo lo entrené con mi conjunto de datos de entrenamiento. Lo que me va a decir es que para ése ejemplo nuevo, el que le pasa a las caraacterísticas de entrada, se corresponde con la categoría 3.
+
+![Clasificacion Multiclase](img/6_clasificacion_multiclase.png)
